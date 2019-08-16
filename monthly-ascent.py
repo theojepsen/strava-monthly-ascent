@@ -46,20 +46,30 @@ def skipWhitespace(f):
     return f
 
 def parseActivity(act):
-    if not act['filename']:
+    fn_key = 'filename'
+    date_key = 'date'
+    type_key = 'type'
+
+    if 'Filename' in act:
+        fn_key = 'Filename'
+        date_key = 'Activity Date'
+        type_key = 'Activity Type'
+
+    if not act[fn_key]:
         return None
-    if act['filename'].endswith('gpx.gz'):
-        with skipWhitespace(gzip.open(act['filename'], 'r')) as f:
+
+    if act[fn_key].endswith('gpx.gz'):
+        with skipWhitespace(gzip.open(act[fn_key], 'r')) as f:
             gpx = gpxpy.parse(f)
         ascent = calcGPXAscent(gpx)
-    elif act['filename'].endswith('tcx.gz'):
-        with skipWhitespace(gzip.open(act['filename'], 'r')) as f:
+    elif act[fn_key].endswith('tcx.gz'):
+        with skipWhitespace(gzip.open(act[fn_key], 'r')) as f:
             tcx = tcxparser.TCXParser(f)
         ascent = tcx.ascent
     else:
         raise Exception("Unknown activity file type")
 
-    return dict(date=act['date'], ascent=ascent, type=act['type'])
+    return dict(date=act[date_key], ascent=ascent, type=act[type_key])
 
 def parseActivities():
     with open('activities.csv', 'r') as f:
@@ -84,6 +94,8 @@ else:
     df.to_pickle('activities_ascent.pkl')
 
 df = df.set_index('date')
+
+print df
 
 if act_types:
     masks = [df['type'] == t for t in act_types]
