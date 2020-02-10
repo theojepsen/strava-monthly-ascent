@@ -49,11 +49,13 @@ def parseActivity(act):
     fn_key = 'filename'
     date_key = 'date'
     type_key = 'type'
+    distance_key = 'distance'
 
     if 'Filename' in act:
         fn_key = 'Filename'
         date_key = 'Activity Date'
         type_key = 'Activity Type'
+        distance_key = 'Distance'
 
     if not act[fn_key]:
         return None
@@ -69,7 +71,9 @@ def parseActivity(act):
     else:
         raise Exception("Unknown activity file type")
 
-    return dict(date=act[date_key], ascent=ascent, type=act[type_key])
+    return dict(date=act[date_key], ascent=ascent,
+            distance=float(act[distance_key].replace(',', '')),
+            type=act[type_key])
 
 def parseActivities():
     with open('activities.csv', 'r') as f:
@@ -78,7 +82,7 @@ def parseActivities():
     print "Parsing activity files in paralell with", cpu_count(), "threads."
     activities2 = Pool(processes=cpu_count()).map(parseActivity, activities)
 
-    cols = ['date', 'ascent', 'type']
+    cols = ['date', 'ascent', 'distance', 'type']
     data = dict((col,[]) for col in cols)
     for x in filter(None, activities2):
         for col in cols: data[col].append(x[col])
@@ -102,8 +106,11 @@ if act_types:
     df = df[np.logical_or.reduce(masks)]
 
 total_ascent = df['ascent'].sum()
+total_distance = df['distance'].sum()
 
 print df.set_index('type', append=True)['ascent'].unstack().sum().sort_values()
+
+print 'total_distance:', total_distance, "km"
 
 ascent_by_month = df.set_index('type', append=True)['ascent'].unstack().resample('M').sum()
 
