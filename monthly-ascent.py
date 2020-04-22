@@ -71,8 +71,12 @@ def parseActivity(act):
     else:
         raise Exception("Unknown activity file type")
 
+    distance = 0
+    distance_str = act[distance_key].replace(',', '')
+    if distance_str: distance = float(distance_str)
+
     return dict(date=act[date_key], ascent=ascent,
-            distance=float(act[distance_key].replace(',', '')),
+            distance=distance,
             type=act[type_key])
 
 def parseActivities():
