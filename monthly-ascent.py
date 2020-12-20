@@ -50,12 +50,14 @@ def parseActivity(act):
     date_key = 'date'
     type_key = 'type'
     distance_key = 'distance'
+    ascent_key = 'elevation'
 
     if 'Filename' in act:
         fn_key = 'Filename'
         date_key = 'Activity Date'
         type_key = 'Activity Type'
         distance_key = 'Distance'
+        ascent_key = 'Elevation Gain'
 
     if not act[fn_key]:
         return None
@@ -68,6 +70,12 @@ def parseActivity(act):
         with skipWhitespace(gzip.open(act[fn_key], 'r')) as f:
             tcx = tcxparser.TCXParser(f)
         ascent = tcx.ascent
+    elif act[fn_key].endswith('fit.gz'):
+        # TODO: parse fit.gz
+        if ascent_key in act:
+            ascent = float(act[ascent_key])
+        else:
+            return None
     else:
         raise Exception("Unknown activity file type")
 
